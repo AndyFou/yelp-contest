@@ -8,9 +8,13 @@
 * Find length: __len(__*DATATYPE*__)__
 * List vs Tuple vs Set vs Dictionary: 
 
-   **List** | **Tuple** | **Set** | **Dictionary** 
-   -------- | --------- | ------- | --------------
-   Homogenous (contains same types) | Immutable (if created, nothing can be added) | mpla | like HashMap
+   **STRUCTURE** | **NOTES** 
+   ------------- | --------- 
+   List | Homogenous _(contains same types)_
+   Tuple | Immutable _(if created, nothing can be added)_ & _Heterogenous(can contain different types)_
+   Set | > Είναι σύνολα οπότε αν έχεις ένα στοιχείο στο σύνολο δεν μπορείς βα βάλεις 2ο ίδιο 
+       | > Example Application: it can be used to find a distinct set of words
+   Dictionary | Works like a HashMap
    
 * Find item in nested list: _photos[i][j]_
 * Print concatenation (string & int): _print "Hello ",x," ",y," World"_
