@@ -20,4 +20,4 @@
 * Print concatenation (string & int): _print "Hello "**,**x**,**" "**,**y**,**" World"_
 
 ### REST
-Show Keypoints: showimage(cv2.drawKeypoints(photo[2],kps,None,None,flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS))
+* Show Keypoints: showimage(cv2.drawKeypoints(photo[2],kps,None,None,flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS))
