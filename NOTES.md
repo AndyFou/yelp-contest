@@ -11,7 +11,8 @@
    STRUCTURE | NOTES
    ------------- | --------- 
    **List** | Homogenous _(contains same types)_
-   **Tuple** | Immutable _(if created, nothing can be added)_ & _Heterogenous(can contain different types)_
+   **Tuple** | Immutable _(if created, nothing can be added)_
+             | Heterogenous _(can contain different types)_
    **Set** | Είναι σύνολα οπότε αν έχεις ένα στοιχείο στο σύνολο δεν μπορείς βα βάλεις 2ο ίδιο 
        | Example Application: it can be used to find a distinct set of words
    **Dictionary** | Works like a HashMap
