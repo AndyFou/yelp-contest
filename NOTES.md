@@ -7,9 +7,11 @@
 ## PYTHON
 * Find length: __len(__*DATATYPE*__)__
 * List vs Tuple vs Set vs Dictionary: 
+
    **List** | **Tuple** | **Set** | **Dictionary** 
    -------- | --------- | ------- | --------------
    Homogenous (contains same types) | Immutable (if created, nothing can be added) | mpla | like HashMap
+   
 * Find item in nested list: _photos[i][j]_
 * Print concatenation (string & int): _print "Hello ",x," ",y," World"_
 
