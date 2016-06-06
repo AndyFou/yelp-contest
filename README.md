@@ -1,14 +1,15 @@
 # Yelp
 
-Restaurants: 2k
-Images: 235k
-=======
 Participation to the **Yelp** Kaggle Contest.
+
+#### Dataset
+Restaurants: 2001
+Images: 234843
 
 ###### Procedure: 
 - [x] Load images
-- [x] Find POI (SIFT / SURF & OpenCV)
-- [ ] Clustering on POI in order to find **???**
-- [ ] Clustering on Images in order to get labels
+- [x] Find POI (SIFT / SURF & OpenCV) & form POIVector
+- [x] Clustering on POI in order to form PhotoVector
+- [ ] Clustering on Images in order to get form BusinessVector
 - [ ] Classification on restaurants
 
