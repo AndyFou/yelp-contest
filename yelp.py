@@ -1,6 +1,7 @@
 # import the necessary packages
 import os
 import numpy as np
+from numpy import array
 import cv2
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
@@ -14,7 +15,7 @@ import re
 # MAIN FUNCTION OF SCRIPT: loads a set of photos and gets SIFT & SURF keypoints
 # Photo Structure: [FILENAME,PHOTO,GRAYSCALE_PHOTO,KEYPOINTS_SURF]
 def main():
-	photos = loadimages()				# load photos from folder
+	photos = loadimages("sample_photos")			# load photos from folder
 
 	descriptors = []
 	photovector = []
@@ -22,12 +23,15 @@ def main():
 		descriptors.append(findsurffeatures(photo))	# find surf features and save keypoints
 		photovector.append([photo[0]])			# feed ids into photovector (to be)
 
-	dataset = preparePOIdata(descriptors)			# create POIvector
+	dataPOI = preparePOIdata(descriptors)			# create POIvector
 
-	#assignCentersPOI(dataset,min(map(len,descriptors)),photovector)		# 1st clustering step: cluster and assign centers (aka create photovector)
+	assignCentersPOI(dataPOI,min(map(len,descriptors)),photovector)		# 1st clustering step: cluster and assign centers (aka create photovector)
 	#photovector is now full with the values of clusters that belong to each photo
 	
-	preparePhotoData(photovector)
+	dataPhoto = preparePhotoData(photovector)
+	
+	labels = clustering(dataPhoto,500)
+	writeInFile(labels,"labels")
 
 ##############################  2nd CLUSTERING  ######################################
 
@@ -46,8 +50,14 @@ def preparePhotoData(photovector):
 	for restaurant in bus_im:
 		for image in restaurant[1]:
 			if image in sample_ids:
-				print(image)
-	
+				for img in photovector:
+					#print(img,type(img[0]),len(img))
+					if re.sub(".jpg","",img[0])==image:
+						dataset.append(array(img[1:min(map(len,photovector))]))
+
+	return dataset
+
+# GET SAMPLE RESTAURANT_PHOTOS ids	
 def getSampleRestPhoto():
 	bus_im_list = getRestPhoto()
 	
@@ -78,6 +88,7 @@ def getRestPhoto():
 #ASSIGN CENTERS IN PHOTOS
 def assignCentersPOI(data,minPOI,photovector):
 	clusters = collections.defaultdict(int)
+	
 	labels = clustering(data, 2048)
 
 	for i in range(len(photovector)):
@@ -115,9 +126,9 @@ def preparePOIdata(descriptors):
 ###################################  PHOTOS  ###########################################
 
 # LOAD PHOTOS FROM FOLDER & SAVE IN A LIST [FILENAME,PHOTO,GRAYSCALE_PHOTO]
-def loadimages():
+def loadimages(filename):
 	photos = [] 					# create "photos" list
-	photosdir = "photos"				# set folder name ("photosdir")
+	photosdir = filename				# set folder name ("photosdir")
 
 	for filename in os.listdir(photosdir):
 		image = cv2.imread(os.path.join(photosdir,filename))	#read photo
