@@ -54,7 +54,7 @@ def main():
 	end = time.time()
 
 	print("Time elapsed: ", int((end-start)/60))
-	writeInFile(busvector,"trainDataset")
+	writeInFileCSV(busvector,"trainDataset")
 
 ##############################  2nd CLUSTERING  ######################################
 
@@ -209,16 +209,26 @@ def showimage(image):
 	cv2.imshow('image',image)
 	cv2.waitKey(0)
 
-###################################  OTHER  ###########################################
+###################################  PRINT  ###########################################
 
-# PRINT IN FILE
-def writeInFile(items,filename):
+# PRINT IN TXT FILE
+def writeInFileTXT(items,filename):
 	text_file = open(filename+".txt","w")
 
 	for item in items:
 		text_file.write(str(item) + "\n")
 
 	text_file.close()
+
+# PRINT IN CSV FILE
+def writeInFileCSV(items,filename):
+	csv_file = open(filename+".csv","w")
+
+	for item in items:
+		[csv_file.write(str(item[x]) + ",") for x in range(len(item)-1)]
+		csv_file.write(str(item[len(item)-1]) + "\n")
+
+	csv_file.close()
 
 ###################################  CALL MAIN  ###########################################
 
