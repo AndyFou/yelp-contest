@@ -5,14 +5,15 @@ import pdb
 import csv
 
 def main():
-	#plaindataset = createPlainDataset("train")
-	#writeInFileCSV(plaindataset,"plaindata")
+	numclusters = 3
+	numlabels = 9
 
-	richdataset = createRichDataset("train",9)
+	dataset = createRichDataset("train",numlabels)
 	
-	labels = ["business_id","cluster1","cluster2","cluster3","label1","label2","label3","label4","label5","label6","label7","label8","label9"]
-	#to-add createLabels function	
-	writeInFileCSV(richdataset,"richdataset",labels)
+	labels = createLabels(numclusters,numlabels)
+	
+	writeInFileCSV(dataset,"dataset",labels)
+	writeInFileARFF(dataset,"dataset",numclusters,numlabels)
 
 
 ###############################  CREATE FILES  #######################################
@@ -73,6 +74,27 @@ def createPlainDataset(kindofdataset):
 
 ###################################  PRINT  ###########################################
 
+# PRINT IN ARFF FILE
+def writeInFileARFF(items,filename,numclusters,numlabels):
+	arff_file = open(filename+".arff","w")
+
+	arff_file.write("@relation " + filename + "\n\n")
+	arff_file.write("@attribute business_id numeric\n")
+
+	for num in range(numclusters):
+		arff_file.write("@attribute cluster" + str(num+1) + " numeric\n")
+
+	for num in range(numlabels):
+		arff_file.write("@attribute label" + str(num+1) + " {0,1}\n")	
+
+	arff_file.write("\n@data\n")	
+
+	for item in items:
+		[arff_file.write(str(item[x]) + ",") for x in range(len(item)-1)]
+		arff_file.write(str(item[len(item)-1]) + "\n")
+
+	arff_file.close()
+
 # PRINT IN CSV FILE
 def writeInFileCSV(items,filename,labels):
 	csv_file = open(filename+".csv","w")
@@ -86,13 +108,16 @@ def writeInFileCSV(items,filename,labels):
 
 	csv_file.close()
 
-# PRINT IN ARFF FILE
-def writeInFileARFF(items,filename):
-	text_file = open(filename+".txt","w")
+# CREATE LABELS FOR DATASET
+def createLabels(numclusters,numlabels):
+	labels = ["business_id"]
 
-	for item in items:
-		text_file.write(str(item) + "\n")
+	for num in range(numclusters):
+		labels.append("cluster" + str(num+1))
 
-	text_file.close()
+	for num in range(numlabels):
+		labels.append("label" + str(num+1))
+
+	return labels
 
 main()
