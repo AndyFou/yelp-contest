@@ -11,13 +11,19 @@ import collections
 import pdb
 import csv
 import re
+import time
 
 # MAIN FUNCTION OF SCRIPT: loads a set of photos and gets SIFT & SURF keypoints
 # Photo Structure: [FILENAME,PHOTO,GRAYSCALE_PHOTO,KEYPOINTS_SURF]
 def main():
-	photos = loadimages("smallsample_photos")			# load photos from folder
-	print("sampling: done!")	
+	start = time.time()
+	
+	time1s = time.time()
+	photos = loadimages("smallsample_photos")			# load photos from folder	
+	time1e = time.time()
+	print("sampling: done! elapsed time: ", time1e-time1s)
 
+	time2s = time.time()
 	descriptors = []
 	photovector = []
 	for photo in photos:
@@ -25,35 +31,43 @@ def main():
 		if tmp is not None:
 			descriptors.append(tmp)				# find surf features and save keypoints
 			photovector.append([photo[0]])			# feed ids into photovector (to be)
-	
-	print("loading: done!")
+	time2e = time.time()
+	print("loading: done! elapsed time: ", time2e-time2s)
 
+	time3s = time.time()
 	dataPOI = preparePOIdata(descriptors)					# create POIvector
-	assignCentersPOI(dataPOI,min(map(len,descriptors)),photovector)		# 1st clustering step: cluster and assign centers
+	assignCentersPOI(dataPOI,min(map(len,descriptors)),photovector,4096)	# 1st clustering step: cluster and assign centers
 	#photovector is now full with the values of clusters that belong to each photo
-	print("1st clustering: done!")
+	time3e = time.time()
+	print("1st clustering: done! elapsed time: ", time3e-time3s)
+	#writeInFile(photovector,"photovector")
 	
+	time4s = time.time()
 	busid = []
 	busvectorim = []
-	dataPhoto = preparePhotoData(photovector,busid,busvectorim)
-	busvector = assignCentersPhotos(dataPhoto,busid,busvectorim)		# 2nd clustering step: cluster and assign centers
-	print("2nd clustering: done!")
+	dataPhoto = preparePhotoData(photovector,busid,busvectorim,"train")
+	busvector = assignCentersPhotos(dataPhoto,busid,busvectorim,3)		# 2nd clustering step: cluster and assign centers
+	time4e = time.time()
+	print("2nd clustering: done! elapsed time: ", time4e-time4s)
 
 	print("Congratulations! The program is finished and you are still alive!")
+	end = time.time()
 
+	print("Time elapsed: ", int((end-start)/60))
 	writeInFile(busvector,"trainDataset")
 
 ##############################  2nd CLUSTERING  ######################################
 
 # ASSIGN CENTERS IN RESTAURANTS
-def assignCentersPhotos(data,busid,busvectorim):	
+def assignCentersPhotos(data,busid,busvectorim,numofclusters):	
 	#busvector = [[busid[x]] for x in range(len(busid))]
 	busvector = []
 	for id in busid:
 		busvector.append([id])	
 
 	# Clustering step
-	labels = clustering(data, 3)
+	labels = clustering(data, numofclusters)
+	silhcoeff(data,labels)
 
 	x=0
 	for i in range(len(busid)):
@@ -62,8 +76,8 @@ def assignCentersPhotos(data,busid,busvectorim):
 		for j in range(x,(len(busvectorim[i])-1+x)):
 			clusters[labels[j]] += 1
 		
-		for cluster in clusters.keys():
-			busvector[i].append(cluster)
+		for z in range(numofclusters):
+			busvector[i].append(clusters[z])
 
 		x = x + len(busvectorim[i])-1
 
@@ -71,8 +85,8 @@ def assignCentersPhotos(data,busid,busvectorim):
 
 # PREPARE DESCRIPTORS FOR CLUSTERING
 # Structure of Dataset: List[numpy.ndarray] - 4781 POI[64 values]
-def preparePhotoData(photovector,busid,busvectorim):
-	bus_im = getRestPhoto()
+def preparePhotoData(photovector,busid,busvectorim,kindofdataset):
+	bus_im = getRestPhoto(kindofdataset)	#getRestPhoto("train" or "test") / getSampleRestPhotoTrain(50) or getSampleRestPhotoTest()
 
 	sample_ids = []	
 	# create id list
@@ -81,32 +95,34 @@ def preparePhotoData(photovector,busid,busvectorim):
 		sample_ids.append(tmp)
 
 	dataset = []
-	for restaurant in bus_im:
-		for image in restaurant[1]:
-			if image in sample_ids:
+	for restaurant in bus_im:			#each restaurant x
+		for image in restaurant[1]:		#each photo in restaurant x
+			if image in sample_ids:		#check if image is contained in our sample
+				# create new bus_im with data only from our sample				
 				if restaurant[0] not in busid:
 					busid.append(restaurant[0])
 					busvectorim.append(['0'])
 					busvectorim[busid.index(restaurant[0])].append(image)
 				else:
 					busvectorim[busid.index(restaurant[0])].append(image)
+				
 				for img in photovector:
 					#print(img,type(img[0]),len(img))
 					if re.sub(".jpg","",img[0])==image:
-						dataset.append(array(img[1:min(map(len,photovector))]))
+						dataset.append(array(img[1:]))
 
 	return dataset
 
 # GET SAMPLE RESTAURANT_PHOTOS ids	
-def getSampleRestPhoto():
-	bus_im_list = getRestPhoto()
-	return bus_im_list[:50]
+def getSampleRestPhotoTrain(samplesize):
+	bus_im_list = getRestPhoto("train")
+	return bus_im_list[:samplesize]
 
 
 # GET RESTAURANT_PHOTOS FROM FILE
 # Structure of Dataset: List[numpy.ndarray] - 4781 POI[64 values]
-def getRestPhoto():
-	csv_file = open("train_photo_to_biz_ids.csv","rb")
+def getRestPhoto(kindofdataset):
+	csv_file = open(""+kindofdataset+"_photo_to_biz_ids.csv","rb")
     	reader = csv.reader(csv_file)
 	bus_im = {}
 	bus_im_list = []
@@ -125,10 +141,10 @@ def getRestPhoto():
 ##############################  1st CLUSTERING  ######################################
 
 # ASSIGN CENTERS IN PHOTOS
-def assignCentersPOI(data,minPOI,photovector):
+def assignCentersPOI(data,minPOI,photovector,numofclusters):
 	
 	# Clustering step
-	labels = clustering(data, 2048)
+	labels = clustering(data, numofclusters)
 
 	for i in range(len(photovector)):
 		clusters = collections.defaultdict(int)
@@ -136,8 +152,8 @@ def assignCentersPOI(data,minPOI,photovector):
 		for j in range(minPOI*i,minPOI*(i+1)):
 			clusters[labels[j]] += 1
 
-		for cluster in clusters.keys():
-			photovector[i].append(cluster)
+		for z in range(numofclusters):
+			photovector[i].append(clusters[z])
 
 # PREPARE DESCRIPTORS FOR CLUSTERING
 # Structure of Dataset: List[numpy.ndarray] - 4781 POI[64 values]
@@ -159,8 +175,12 @@ def preparePOIdata(descriptors):
 def clustering(data,num_clusters):
 	kmeans_model = KMeans(num_clusters, random_state=1).fit(data)
 	labels = kmeans_model.labels_
-
 	return labels
+
+# Load clustering results and calculate silhouette coefficient
+def silhcoeff(data,labels):
+	arrdata = array(data)
+	print("Silhouette coefficient: ", metrics.silhouette_score(arrdata,labels,metric='euclidean'))
 
 ###################################  PHOTOS  ###########################################
 
