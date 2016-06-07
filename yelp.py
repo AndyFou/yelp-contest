@@ -15,30 +15,64 @@ import re
 # MAIN FUNCTION OF SCRIPT: loads a set of photos and gets SIFT & SURF keypoints
 # Photo Structure: [FILENAME,PHOTO,GRAYSCALE_PHOTO,KEYPOINTS_SURF]
 def main():
-	photos = loadimages("sample_photos")			# load photos from folder
+	photos = loadimages("photos")				# load photos from folder
+	print("sampling: done!")	
 
 	descriptors = []
 	photovector = []
 	for photo in photos:
-		descriptors.append(findsurffeatures(photo))	# find surf features and save keypoints
-		photovector.append([photo[0]])			# feed ids into photovector (to be)
+		tmp=findsurffeatures(photo)
+		if tmp is not None:
+			descriptors.append(tmp)			# find surf features and save keypoints
+			photovector.append([photo[0]])		# feed ids into photovector (to be)
+	
+	print("loading: done!")
 
-	dataPOI = preparePOIdata(descriptors)			# create POIvector
-
-	assignCentersPOI(dataPOI,min(map(len,descriptors)),photovector)		# 1st clustering step: cluster and assign centers (aka create photovector)
+	dataPOI = preparePOIdata(descriptors)					# create POIvector
+	assignCentersPOI(dataPOI,min(map(len,descriptors)),photovector)		# 1st clustering step: cluster and assign centers
 	#photovector is now full with the values of clusters that belong to each photo
+	print("1st clustering: done!")
 	
-	dataPhoto = preparePhotoData(photovector)
-	
-	labels = clustering(dataPhoto,500)
-	writeInFile(labels,"labels")
+	busid = []
+	busvectorim = []
+	dataPhoto = preparePhotoData(photovector,busid,busvectorim)
+	busvector = assignCentersPhotos(dataPhoto,busid,busvectorim)		# 2nd clustering step: cluster and assign centers
+	print("2nd clustering: done!")
+
+	print("Congratulations! The program is finished and you are still alive!")
+
+	writeInFile(busvector,"busvector")
 
 ##############################  2nd CLUSTERING  ######################################
 
+# ASSIGN CENTERS IN RESTAURANTS
+def assignCentersPhotos(data,busid,busvectorim):	
+	#busvector = [[busid[x]] for x in range(len(busid))]
+	busvector = []
+	for id in busid:
+		busvector.append([id])	
+
+	# Clustering step
+	labels = clustering(data, 3)
+
+	x=0
+	for i in range(len(busid)):
+		clusters = collections.defaultdict(int)
+
+		for j in range(x,(len(busvectorim[i])-1+x)):
+			clusters[labels[j]] += 1
+		
+		for cluster in clusters.keys():
+			busvector[i].append(cluster)
+
+		x = x + len(busvectorim[i])-1
+
+	return busvector
+
 # PREPARE DESCRIPTORS FOR CLUSTERING
-#Structure of Dataset: List[numpy.ndarray] - 4781 POI[64 values]
-def preparePhotoData(photovector):
-	bus_im = getSampleRestPhoto()
+# Structure of Dataset: List[numpy.ndarray] - 4781 POI[64 values]
+def preparePhotoData(photovector,busid,busvectorim):
+	bus_im = getRestPhoto()
 
 	sample_ids = []	
 	# create id list
@@ -50,6 +84,12 @@ def preparePhotoData(photovector):
 	for restaurant in bus_im:
 		for image in restaurant[1]:
 			if image in sample_ids:
+				if restaurant[0] not in busid:
+					busid.append(restaurant[0])
+					busvectorim.append(['0'])
+					busvectorim[busid.index(restaurant[0])].append(image)
+				else:
+					busvectorim[busid.index(restaurant[0])].append(image)
 				for img in photovector:
 					#print(img,type(img[0]),len(img))
 					if re.sub(".jpg","",img[0])==image:
@@ -60,7 +100,6 @@ def preparePhotoData(photovector):
 # GET SAMPLE RESTAURANT_PHOTOS ids	
 def getSampleRestPhoto():
 	bus_im_list = getRestPhoto()
-	
 	return bus_im_list[:50]
 
 
@@ -85,10 +124,10 @@ def getRestPhoto():
 
 ##############################  1st CLUSTERING  ######################################
 
-#ASSIGN CENTERS IN PHOTOS
+# ASSIGN CENTERS IN PHOTOS
 def assignCentersPOI(data,minPOI,photovector):
-	clusters = collections.defaultdict(int)
 	
+	# Clustering step
 	labels = clustering(data, 2048)
 
 	for i in range(len(photovector)):
@@ -100,28 +139,28 @@ def assignCentersPOI(data,minPOI,photovector):
 		for cluster in clusters.keys():
 			photovector[i].append(cluster)
 
-	#print(len(photovector),len(photovector[0]),len(photovector[1]),len(photovector[6]),type(photovector[0]))
-
-# CLUSTERING IN POI
-# Load dataset, which is a list of keypoints
-def clustering(data,num_clusters):
-	kmeans_model = KMeans(num_clusters, random_state=1).fit(data)
-	labels = kmeans_model.labels_
-
-	return labels
-
 # PREPARE DESCRIPTORS FOR CLUSTERING
-#Structure of Dataset: List[numpy.ndarray] - 4781 POI[64 values]
+# Structure of Dataset: List[numpy.ndarray] - 4781 POI[64 values]
 def preparePOIdata(descriptors):
 	# make descriptors same size for all photos
 	mindesc = min(map(len,descriptors))
 
 	dataset = []
-	for i in range(len(descriptors)):
-		for j in range(mindesc):
-			dataset.append(descriptors[i][j])
+	if mindesc:
+		for i in range(len(descriptors)):
+			for j in range(mindesc):
+				dataset.append(descriptors[i][j])
 
 	return dataset
+
+##################################  CLUSTERING  ##########################################
+
+# Load dataset and train kmeans model
+def clustering(data,num_clusters):
+	kmeans_model = KMeans(num_clusters, random_state=1).fit(data)
+	labels = kmeans_model.labels_
+
+	return labels
 
 ###################################  PHOTOS  ###########################################
 
@@ -140,9 +179,8 @@ def loadimages(filename):
 # FIND SURF FEATURES FOR A PHOTO AND RETURN DESCRIPTORS
 def findsurffeatures(photo):
 	surf = cv2.xfeatures2d.SURF_create()
-	(kps,surf) = surf.detectAndCompute(photo[2],None)
+	(kps,descriptors) = surf.detectAndCompute(photo[2],None)
 	photo.append(kps)
-	descriptors = surf
 
 	return descriptors
 

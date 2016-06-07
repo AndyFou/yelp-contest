@@ -10,6 +10,6 @@ Images: 234843
 - [x] Load images
 - [x] Find POI (SIFT / SURF & OpenCV) & form POIVector
 - [x] Clustering on POI in order to form PhotoVector
-- [ ] Clustering on Images in order to get form BusinessVector
+- [x] Clustering on Images in order to get form BusinessVector
 - [ ] Classification on restaurants
 
