@@ -16,12 +16,16 @@ import time
 # MAIN FUNCTION OF SCRIPT: loads a set of photos and gets SIFT & SURF keypoints
 # Photo Structure: [FILENAME,PHOTO,GRAYSCALE_PHOTO,KEYPOINTS_SURF]
 def main():
+	# SYSTEM VARIABLES
+	numclusters1st = 4096
+	numclusters2nd = 100
+
 	start = time.time()
 	
 	time1s = time.time()
-	photos = loadimages("smallsample_photos")			# load photos from folder	
+	photos = loadimages("sample_photos")			# load photos from folder	
 	time1e = time.time()
-	print("sampling: done! elapsed time: ", time1e-time1s)
+	print("sampling: done! elapsed time: ", (time1e-time1s)/60)
 
 	time2s = time.time()
 	descriptors = []
@@ -32,29 +36,29 @@ def main():
 			descriptors.append(tmp)				# find surf features and save keypoints
 			photovector.append([photo[0]])			# feed ids into photovector (to be)
 	time2e = time.time()
-	print("loading: done! elapsed time: ", time2e-time2s)
+	print("loading: done! elapsed time: ", (time2e-time2s)/60)
 
 	time3s = time.time()
 	dataPOI = preparePOIdata(descriptors)					# create POIvector
-	assignCentersPOI(dataPOI,min(map(len,descriptors)),photovector,4096)	# 1st clustering step: cluster and assign centers
+	assignCentersPOI(dataPOI,min(map(len,descriptors)),photovector,numclusters1st)	# 1st clustering step: cluster and assign centers
 	#photovector is now full with the values of clusters that belong to each photo
 	time3e = time.time()
-	print("1st clustering: done! elapsed time: ", time3e-time3s)
+	print("1st clustering: done! elapsed time: ", (time3e-time3s)/60)
 	#writeInFile(photovector,"photovector")
 	
 	time4s = time.time()
 	busid = []
 	busvectorim = []
 	dataPhoto = preparePhotoData(photovector,busid,busvectorim,"train")
-	busvector = assignCentersPhotos(dataPhoto,busid,busvectorim,3)		# 2nd clustering step: cluster and assign centers
+	busvector = assignCentersPhotos(dataPhoto,busid,busvectorim,numclusters2nd)	# 2nd clustering step: cluster and assign centers
 	time4e = time.time()
-	print("2nd clustering: done! elapsed time: ", time4e-time4s)
+	print("2nd clustering: done! elapsed time: ", (time4e-time4s)/60)
 
 	print("Congratulations! The program is finished and you are still alive!")
 	end = time.time()
 
-	print("Time elapsed: ", int((end-start)/60))
 	writeInFileCSV(busvector,"trainDataset")
+	print("Time elapsed: ", int((end-start)/60))
 
 ##############################  2nd CLUSTERING  ######################################
 
@@ -67,7 +71,7 @@ def assignCentersPhotos(data,busid,busvectorim,numofclusters):
 
 	# Clustering step
 	labels = clustering(data, numofclusters)
-	silhcoeff(data,labels)
+	#silhcoeff(data,labels)
 
 	x=0
 	for i in range(len(busid)):

@@ -5,7 +5,7 @@ import pdb
 import csv
 
 def main():
-	numclusters = 3
+	numclusters = 100
 	numlabels = 9
 
 	dataset = createRichDataset("train",numlabels)
