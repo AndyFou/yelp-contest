@@ -6,6 +6,12 @@ Participation to the **Yelp** Kaggle Contest.
 Restaurants: 2001
 Images: 234843
 
+#### Dependencies - For Mulan (http://mulan.sourceforge.net/)
+* weka 3.7.10
+* java 1.7 or higher
+* mulan 1.5
+
+
 ###### Procedure: 
 - [x] Load images
 - [x] Find POI (SIFT / SURF & OpenCV) & form POIVector
