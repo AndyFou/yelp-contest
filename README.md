@@ -15,12 +15,12 @@ Images: ~237000
 ##### Dependencies for SURF & Clustering (http://mulan.sourceforge.net/)
 * python 3.x
 * openCV 2.4
-* scikit-learn
+* [scikit-learn] (http://scikit-learn.org/stable/)
 
-(to make python 3 and openCV work for SURF follow the instructions in this link: http://www.pyimagesearch.com/2015/07/16/where-did-sift-and-surf-go-in-opencv-3/)
+(to make python 3 and openCV work for SURF follow the awesome instructions in this [link] (http://www.pyimagesearch.com/2015/07/16/where-did-sift-and-surf-go-in-opencv-3/))
 
 ##### Dependencies for Classification 
-* weka 3.7.10
+* [weka 3.7.10] (https://sourceforge.net/projects/weka/files/weka-3-7/3.7.10/)
 * java 1.7 or higher
 * [mulan 1.5] (http://mulan.sourceforge.net/)
 
