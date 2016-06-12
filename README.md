@@ -16,6 +16,7 @@ Images: ~237000
 * python 3.x
 * openCV 2.4
 * scikit-learn
+
 (to make python 3 and openCV work for SURF follow the instructions in this link: http://www.pyimagesearch.com/2015/07/16/where-did-sift-and-surf-go-in-opencv-3/)
 
 ##### Dependencies for Classification 
