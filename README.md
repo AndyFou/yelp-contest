@@ -22,7 +22,7 @@ Images: ~237000
 ##### Dependencies for Classification 
 * weka 3.7.10
 * java 1.7 or higher
-* mulan 1.5 (http://mulan.sourceforge.net/)
+* [mulan 1.5] (http://mulan.sourceforge.net/)
 
 ### PROCEDURE: 
 - [x] Load images
