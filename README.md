@@ -23,7 +23,7 @@ Images: ~237000
 * java 1.7 or higher
 * mulan 1.5 (http://mulan.sourceforge.net/)
 
-### Procedure: 
+### PROCEDURE: 
 - [x] Load images
 - [x] Find POI (SIFT / SURF & OpenCV) & form POIVector
 - [x] Clustering on POI in order to form PhotoVector
