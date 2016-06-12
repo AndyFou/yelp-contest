@@ -1,4 +1,4 @@
-# Participation to the **Yelp** Competition of Kaggle.
+# Participation to the **Yelp** Competition of Kaggle
 
 ### DATASET
 
